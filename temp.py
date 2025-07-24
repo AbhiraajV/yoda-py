@@ -1,30 +1,37 @@
 
 
 
-def getCorrectRange(first: int, second: int) -> list:
+def getCorrectRange(first, second,step):
     if first > second:
-        return list(range(first, second - 1, -1))
-    return list(range(first, second + 1)) 
+        return list(range(first, second - 1, -step))
+    return list(range(first, second + 1,step)) 
 
 
-def getRangePoints(part: str, delimiter: str):
+def getRangePoints(part, delimiter):
     first, second = part.split(delimiter)
+    step = 1
+    if ':' in second:
+        second, step = second.split(':')
+        if not step.strip().isnumeric():
+            raise Exception('non numeric step value entered')
+        step = int(step)
+
     if not first.strip().isnumeric() or not second.strip().isnumeric():
         raise Exception('non numeric value entered')
-    return int(first), int(second)
+    return int(first), int(second), step
 
 def rangeResolver(part,customDelimeters):
     part = part.strip()
     for delimiter in customDelimeters:
         if delimiter in part:
-            first, second = getRangePoints(part, delimiter)
-            return getCorrectRange(first, second)
+            first, second,step = getRangePoints(part, delimiter)
+            return getCorrectRange(first, second,step)
 
     return [int(part)] if part.isnumeric() else []
 
     
     
-def expander(s,customDelimeters):
+def expander(s,customDelimeters=['-']):
     result = []
     s = s.strip()
     parts = s.split(',')
@@ -54,6 +61,12 @@ class TestRangeExpander(unittest.TestCase):
     def test_mixTest(self):
         input_str = "3-1,1-3,5 ,7~9,  ,   "
         expected = [3, 2, 1, 1, 2, 3, 5, 7, 8, 9]
+        self.assertEqual(expander(input_str, ['-', '~']), expected)
+
+    
+    def test_stepValue(self):
+        input_str = "1~10:2  ,   "
+        expected = [1, 3, 5, 7, 9]
         self.assertEqual(expander(input_str, ['-', '~']), expected)
 
 if __name__ == "__main__":
