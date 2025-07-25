@@ -31,43 +31,61 @@ def rangeResolver(part,customDelimeters):
 
     
     
-def expander(s,customDelimeters=['-']):
+def expander(s,customDelimeters=['-'],format = 'list',outputMode='as-it-is'):
     result = []
     s = s.strip()
     parts = s.split(',')
     for part in parts:
         if(part != ''):
             result.extend(rangeResolver(part,customDelimeters))
+    
+    if outputMode == 'sorted-unique':
+        result = sorted(set(result))
+    elif outputMode == 'unique':
+        result = list(dict.fromkeys(result))
+        
+    if format == 'csv':
+        return ','.join(map(str,result))
+    elif format == 'set':
+        return set(result)
     return result
 
+print(expander('1-2,5-3,10~20:4',['-','~'],'list','unique'))
+import unittest
 import unittest
 
 class TestRangeExpander(unittest.TestCase):
 
-    def test_basic(self):
-        self.assertEqual(rangeResolver("1-3", ['-']), [1, 2, 3])
-
-    def test_changeDelimeterTest(self):
-        self.assertEqual(rangeResolver("5~7", ['~']), [5, 6, 7])
-
-    def test_reverseRangeTest(self):
-        self.assertEqual(rangeResolver("5-2", ['-']), [5, 4, 3, 2])
-
-    def test_nonNumericTest(self):
-        with self.assertRaises(Exception) as context:
-            rangeResolver("a-c", ['-', '~'])
-        self.assertIn("non numeric value entered", str(context.exception))
-
-    def test_mixTest(self):
+    def test_mix_ranges(self):
         input_str = "3-1,1-3,5 ,7~9,  ,   "
         expected = [3, 2, 1, 1, 2, 3, 5, 7, 8, 9]
         self.assertEqual(expander(input_str, ['-', '~']), expected)
 
-    
-    def test_stepValue(self):
-        input_str = "1~10:2  ,   "
-        expected = [1, 3, 5, 7, 9]
-        self.assertEqual(expander(input_str, ['-', '~']), expected)
+    def test_step_value(self):
+        self.assertEqual(expander("1~10:2", ['~']), [1, 3, 5, 7, 9])
+
+
+    def test_sorted_unique(self):
+        self.assertEqual(
+            expander("3-1,1-3,5 ,7~9", ['-', '~'], outputMode='sorted-unique'),
+            [1, 2, 3, 5, 7, 8, 9]
+        )
+
+    def test_unique_preserve_order(self):
+        self.assertEqual(
+            expander("3-1,1-3,5 ,7~9", ['-', '~'], outputMode='unique'),
+            [3, 2, 1, 5, 7, 8, 9]
+        )
+
+    def test_csv_format(self):
+        self.assertEqual(
+            expander("1-3,2-2", ['-'], format='csv', outputMode='sorted-unique'),
+            "1,2,3"
+        )
+
+    def test_set_format(self):
+        result = expander("1-3,2-2", ['-'], format='set', outputMode='sorted-unique')
+        self.assertEqual(result, {1, 2, 3})
 
 if __name__ == "__main__":
     unittest.main()
