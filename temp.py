@@ -49,9 +49,6 @@ def expander(s,customDelimeters=['-'],format = 'list',outputMode='as-it-is'):
     elif format == 'set':
         return set(result)
     return result
-
-print(expander('1-2,5-3,10~20:4',['-','~'],'list','unique'))
-import unittest
 import unittest
 
 class TestRangeExpander(unittest.TestCase):
